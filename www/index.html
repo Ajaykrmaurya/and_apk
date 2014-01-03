@@ -1,16 +1,184 @@
 <!doctype html>
 <html ng-app>
   <head>
+  <script src="js1.10.2.js"></script>
     <script src="script.js"></script>
+    
   </head>
   <body>
     <div>
+    <form>
       <label>Name:</label>
-      <input type="text" ng-model="yourName" placeholder="Enter a name here">
-      <input type="text" ng-model="yourMail" placeholder="Enter a email here">
+      <input type="text" ng-model="yourName" placeholder="Enter a name here" id="username">
+      <input type="text" ng-model="yourMail" placeholder="Enter a email here" id="useremail">
       <hr>
       <h1>Hello {{yourName}}  , {{yourMail}}!</h1>
-       <input type="button" value="Reload Page" onClick="window.location.reload()">
+       <input id="submitButton" type="button" value="Reload Page" onClick="window.location.reload()">
+       </form>
     </div>
+     <div id="results"></div>
+     
+     <script>
+var createStatement = "CREATE TABLE IF NOT EXISTS Contacts (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, useremail TEXT)";
+ 
+var selectAllStatement = "SELECT * FROM Contacts";
+ 
+var insertStatement = "INSERT INTO Contacts (username, useremail) VALUES (?, ?)";
+ 
+//var updateStatement = "UPDATE Contacts SET username = ?, useremail = ? WHERE id=?";
+ 
+//var deleteStatement = "DELETE FROM Contacts WHERE id=?";
+ 
+//var dropStatement = "DROP TABLE Contacts";
+ 
+ var db = openDatabase("AddressBook", "1.0", "Address Book", 200000);  // Open SQLite Database
+ 
+var dataset;
+ 
+var DataType;
+ 
+function initDatabase()  
+ 
+{
+ 
+    try {
+ 
+      
+ 
+            createTable(); 
+ 
+       
+ 
+    }
+ 
+    catch (e) {
+ 
+      
+            console.log("Unknown error " + e + ".");
+ 
+       
+ 
+        return;
+ 
+    }
+ 
+}
+ 
+function createTable() 
+ 
+{
+ 
+    db.transaction(function (tx) { tx.executeSql(createStatement, [], showRecords, onError); });
+ 
+}
+ 
+function insertRecord() 
+ 
+{
+ 
+        var usernametemp = $('input:text[id=username]').val();
+ 
+        var useremailtemp = $('input:text[id=useremail]').val();
+        db.transaction(function (tx) { tx.executeSql(insertStatement, [usernametemp, useremailtemp], loadAndReset, onError); });
+ 
+       
+ 
+}
+ 
+
+ 
+
+ 
+
+ 
+function loadRecord(i)
+ 
+{
+ 
+    var item = dataset.item(i);
+ 
+    $("#username").val((item['username']).toString());
+ 
+    $("#useremail").val((item['useremail']).toString());
+ 
+    $("#id").val((item['id']).toString());
+ 
+}
+ 
+function resetForm()
+ 
+{
+ 
+    $("#username").val("");
+ 
+    $("#useremail").val("");
+ 
+    $("#id").val("");
+ 
+}
+ 
+function loadAndReset() 
+ 
+{
+ 
+    resetForm();
+ 
+    showRecords()
+ 
+}
+ 
+function onError(tx, error) 
+ 
+{
+ 
+    alert(error.message);
+ 
+}
+ 
+function showRecords() 
+ 
+{
+ 
+    $("#results").html('')
+ 
+    db.transaction(function (tx) {
+ 
+        tx.executeSql(selectAllStatement, [], function (tx, result) {
+ 
+            dataset = result.rows;
+ 
+            for (var i = 0, item = null; i < dataset.length; i++) {
+ 
+                item = dataset.item(i);
+ 
+                var linkeditdelete = '<li>' + item['username'] + ' , ' + item['useremail'] + '    ' + '    ' +
+ 
+                                            '</li>';
+ 
+                $("#results").append(linkeditdelete);
+ 
+            }
+ 
+        });
+ 
+    });
+ 
+}
+ 
+$(document).ready(function () 
+ 
+{
+
+ 
+    $("body").fadeIn(2000); 
+ 
+    initDatabase();
+ 
+    $("#submitButton").click(insertRecord);  
+ 
+    
+ 
+});
+	</script>
   </body>
 </html>

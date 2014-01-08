@@ -1,278 +1,144 @@
-<!DOCTYPE html PUBLIC>
- 
- <html>
- 
+<!doctype html>
+<html>
 <head>
- 
-    <title>Exercise 3</title>
- 
-    
- 
-     <script type="text/javascript" src="js1.10.2.js"></script>
- 
-<body>
- 
-<h1>CONTACT FORM</h1>
- 
-              <form id="mycontact">
- 
-                     <fieldset>
- 
-                           <legend>Your details</legend>
- 
-                           <ol>
- 
-                                  <li>
- 
-                                         <label for="username">Name</label>
- 
-                                         <input id="username" type="text" placeholder="First and last name" required autofocus pattern=" ">
- 
-                        <input type="hidden" id="id"/>
- 
-                                  </li>
- 
-                                  <li>
- 
-                                         <label for="useremail">Email</label>
- 
-                                         <input id="useremail" type="text" placeholder="example@domain.com" required pattern=" ">
- 
-                                  </li>
- 
-                           </ol>
- 
-                     </fieldset>
- 
-                <button id="btnReset" type=submit>Reset</button>
- 
-                     <button id="submitButton" type="submit">SAVE</button>
- 
-                <button id="btnUpdate" type=submit>UPDATE</button>
- 
-                <button id="btnDrop" type=submit>DROP</button>
- 
-              </form><br />
- 
-        <div id="results"></div>
- 
-</body>
- <script>
- var createStatement = "CREATE TABLE IF NOT EXISTS Contacts (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, useremail TEXT)";
- 
-var selectAllStatement = "SELECT * FROM Contacts";
- 
-var insertStatement = "INSERT INTO Contacts (username, useremail) VALUES (?, ?)";
- 
-var updateStatement = "UPDATE Contacts SET username = ?, useremail = ? WHERE id=?";
- 
-var deleteStatement = "DELETE FROM Contacts WHERE id=?";
- 
-var dropStatement = "DROP TABLE Contacts";
- 
- var db = openDatabase("AddressBook", "1.0", "Address Book", 200000);  // Open SQLite Database
- 
-var dataset;
- 
-var DataType;
- 
- function initDatabase()  // Function Call When Page is ready.
- 
-{
- 
-    try {
- 
-        if (!window.openDatabase)  // Check browser is supported SQLite or not.
- 
-        {
- 
-            alert('Databases are not supported in this browser.');
- 
-        }
- 
-        else {
- 
-            createTable();  // If supported then call Function for create table in SQLite
- 
-        }
- 
-    }
- 
-    catch (e) {
- 
-        if (e == 2) {
- 
-            // Version number mismatch. 
- 
-            console.log("Invalid database version.");
- 
-        } else {
- 
-            console.log("Unknown error " + e + ".");
- 
-        }
- 
-        return;
- 
-    }
- 
-}
- 
-function createTable()  // Function for Create Table in SQLite.
- 
-{
- 
-    db.transaction(function (tx) { tx.executeSql(createStatement, [], showRecords, onError); });
- 
-}
- 
-function insertRecord() // Get value from Input and insert record . Function Call when Save/Submit Button Click..
- 
-{
- 
-        var usernametemp = $('input:text[id=username]').val();
- 
-        var useremailtemp = $('input:text[id=useremail]').val();
-        db.transaction(function (tx) { tx.executeSql(insertStatement, [usernametemp, useremailtemp], loadAndReset, onError); });
- 
-        //tx.executeSql(SQL Query Statement,[ Parameters ] , Sucess Result Handler Function, Error Result Handler Function );
- 
-}
- 
-function deleteRecord(id) // Get id of record . Function Call when Delete Button Click..
- 
-{
- 
-    var iddelete = id.toString();
- 
-    db.transaction(function (tx) { tx.executeSql(deleteStatement, [id], showRecords, onError); alert("Delete Sucessfully"); });
- 
-    resetForm();
- 
-}
- 
-function updateRecord() // Get id of record . Function Call when Delete Button Click..
- 
-{
- 
-    var usernameupdate = $('input:text[id=username]').val().toString();
- 
-    var useremailupdate = $('input:text[id=useremail]').val().toString();
- 
-    var useridupdate = $("#id").val();
- 
-    db.transaction(function (tx) { tx.executeSql(updateStatement, [usernameupdate, useremailupdate, Number(useridupdate)], loadAndReset, onError); });
- 
-}
- 
-function dropTable() // Function Call when Drop Button Click.. Talbe will be dropped from database.
- 
-{
- 
-    db.transaction(function (tx) { tx.executeSql(dropStatement, [], showRecords, onError); });
- 
-    resetForm();
- 
-    initDatabase();
- 
-}
- 
-function loadRecord(i) // Function for display records which are retrived from database.
- 
-{
- 
-    var item = dataset.item(i);
- 
-    $("#username").val((item['username']).toString());
- 
-    $("#useremail").val((item['useremail']).toString());
- 
-    $("#id").val((item['id']).toString());
- 
-}
- 
-function resetForm() // Function for reset form input values.
- 
-{
- 
-    $("#username").val("");
- 
-    $("#useremail").val("");
- 
-    $("#id").val("");
- 
-}
- 
-function loadAndReset() //Function for Load and Reset...
- 
-{
- 
-    resetForm();
- 
-    showRecords()
- 
-}
- 
-function onError(tx, error) // Function for Hendeling Error...
- 
-{
- 
-    alert(error.message);
- 
-}
- 
-function showRecords() // Function For Retrive data from Database Display records as list
- 
-{
- 
-    $("#results").html('')
- 
-    db.transaction(function (tx) {
- 
-        tx.executeSql(selectAllStatement, [], function (tx, result) {
- 
-            dataset = result.rows;
- 
-            for (var i = 0, item = null; i < dataset.length; i++) {
- 
-                item = dataset.item(i);
- 
-                var linkeditdelete = '<li>' + item['username'] + ' , ' + item['useremail'] + '    ' + '<a href="#" onclick="loadRecord(' + i + ');">edit</a>' + '    ' +
- 
-                                            '<a href="#" onclick="deleteRecord(' + item['id'] + ');">delete</a></li>';
- 
-                $("#results").append(linkeditdelete);
- 
-            }
- 
-        });
- 
-    });
- 
-}
- 
-$(document).ready(function () // Call function when page is ready for load..
- 
-{
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Local Database</title>
+<script src="http://www.google.com/jsapi"></script>
+    <script>
+      google.load("jquery", "1.4.1");
+    </script>
+   
+</head>
 
- 
-    $("body").fadeIn(2000); // Fede In Effect when Page Load..
- 
-    initDatabase();
- 
-    $("#submitButton").click(insertRecord);  // Register Event Listener when button click.
- 
-    $("#btnUpdate").click(updateRecord);
- 
-    $("#btnReset").click(resetForm);
- 
-    $("#btnDrop").click(dropTable);
- 
+<body>
+
+<input type="text" id="txtName" placeholder="Enter Your Name" />
+
+<!-- <input type="text" id="intAge" placeholder="Enter Your Age" />
+
+<input type="text" id="txtColour" placeholder="Enter Your Favourite Colour" /> -->
+
+<input type="submit" value="Save" id="btnSave" />
+<input type="submit" value="Get Data" id="btnGet" />
+
+<div class="results"></div>
+<div class="pp"></div>
+<script>
+////
+///Save Data Function
+/////
+function saveData(){
+    //Our text field data
+    var txtName = $('#txtName').val();
+   // var intAge = $('#intAge').val();
+    //var txtColour = $('#txtColour').val();
+    
+    //Check databases are supported
+    if(openDatabase){
+        //Open a database transaction
+        db.transaction(function(tx){
+            //Execute an SQL statement to create the table "tblDemo" 
+            //only if it doesn't already exist                
+            tx.executeSql('CREATE TABLE IF NOT EXISTS tblDemo ('
+                           + 'personId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,'
+                           + 'personName VARCHAR(255),'
+                           //+ 'personAge INTEGER,'
+                          // + 'personColour VARCHAR(255)'
+                           + ');',[],nullData,errorHandler);
+        });
+        
+        //Open a new transaction
+        db.transaction(function(tx){
+            //Exexute an INSERT with the name, age and favourite colour, 
+            //we set values outside the SQL string for added security and 
+            //to prevent SQL injections, the values are represented with "?"
+            tx.executeSql('INSERT INTO tblDemo ('
+                           + 'personName)'
+                           + 'VALUES (?);'
+                           ,[txtName],nullData,errorHandler);
+        });
+    }
+}
+function delet() {
+       
+        db.transaction(function(tx){
+          tx.executeSql("DELETE FROM tblDemo WHERE ID=?", [id],
+              nullData,
+              errorHandler);
+          });
+      }
+/////
+///Get Data Function
+/////
+function getData(){
+    //Create an empty results string
+    var strResults = '';
+    
+    //Open a new transaction
+    db.transaction(function(tx){
+        //Select a wildcard from the database
+        tx.executeSql('SELECT * FROM tblDemo'
+                       ,[]
+                       //Callback function with transaction and 
+                       //results objects
+                       ,function(tx, results){
+                            //Count the results rows
+                            var rowsCount = results.rows.length;  
+                            //Loop the rows
+                            for (var i = 0; i < rowsCount; i++){
+                                //Build a results string, notice the 
+                                //column names are called
+                                strResults += '<p>Your Name is<b> '
+                                              + results.rows.item(i).personName
+                                              //+ '</b> Delet<b> '
+                                              //+ results.rows.item(i).personId
+                                             // + '</b> Your age is<b> '
+                                             // + results.rows.item(i).personAge
+                                              //+ '</b> Your favourite colour is<b> '
+                                             // + results.rows.item(i).personColour
+                                              + '</b></p>';
+                            }
+                            //Fill the results DIV 
+                            $('.results').html(strResults);
+                        }
+                       ,errorHandler);
+    });
+}
+
+/////
+///Error Handler
+/////
+function errorHandler(transaction, error) {
+    //Log the error
+    console.log('Error: ' + error.message + ' (Code ' + error.code + ')');
+}
+
+/////
+///Null Data
+/////
+function nullData(){
+    //Can be used for callbacks etc
+}
+/////
+///Document Ready 
+/////
+$(document).ready(function(){
+	
+    //Bind events to the buttons to fire off the functions                       
+    $('#btnSave').bind('click' , saveData);
+    $('#btnGet').bind('click' , getData);
+	
+    
+    //Open the database 
+    if(openDatabase){
+        db = openDatabase('Database Name' , '1.0' , 'Database Description' , 2 * 1024 * 1024);
+    }
+    //Alert the user to upgrade their browser
+    else {
+        alert('Databases not supported. Please get a proper browser');
+    }
+    
 });
- 
- </script>
- 
- 
+</script>
+</body>
 </html>
- 
-<span style="font-family: Calibri; font-size: small;"> </span>

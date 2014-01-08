@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -12,9 +12,9 @@
 
 <input type="text" id="txtName" placeholder="Enter Your Name" />
 
-<!-- <input type="text" id="intAge" placeholder="Enter Your Age" />
+<input type="text" id="intAge" placeholder="Enter Your Age" />
 
-<input type="text" id="txtColour" placeholder="Enter Your Favourite Colour" /> -->
+<input type="text" id="txtColour" placeholder="Enter Your Favourite Colour" />
 
 <input type="submit" value="Save" id="btnSave" />
 <input type="submit" value="Get Data" id="btnGet" />
@@ -138,5 +138,129 @@ $(document).ready(function(){
     
 });
 </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+  <style>
+ body {
+    font-family: sans-serif; 
+    padding: 10px;    
+}
+h1 {
+    font-weight: bold;   
+}
+label {
+     font-size: small;   
+}
+#controls {
+    padding-bottom: 5px;
+    border-bottom: 1px solid #000;    
+} 
+  </style>
+  <script>
+  //Test for browser compatibility
+if (window.openDatabase) {
+    
+    var mydb = openDatabase("cars_db", "0.1", "A Database of detail I Like", 1024 * 1024);
+
+    
+    mydb.transaction(function(t) {
+        t.executeSql("CREATE TABLE IF NOT EXISTS detail (id INTEGER PRIMARY KEY ASC, make TEXT, model TEXT)");
+    });
+
+
+
+} else {
+    alert("WebSQL is not supported by your browser!");
+}
+
+
+function updateCarList(transaction, results) {
+    
+    var listitems = "";
+    
+    var listholder = document.getElementById("carlist");
+
+   
+    listholder.innerHTML = "";
+
+    var i;
+   
+    for (i = 0; i < results.rows.length; i++) {
+        
+        var row = results.rows.item(i);
+
+        listholder.innerHTML += "<li>" + row.make + " - " + row.model + " (<a href='javascript:void(0);' onclick='deleteCar(" + row.id + ");'>Delete</a>)";
+    }
+
+}
+
+
+
+function outputCars() {
+    
+    if (mydb) {
+        
+        mydb.transaction(function(t) {
+            t.executeSql("SELECT * FROM detail", [], updateCarList);
+        });
+    } else {
+        alert("db not found, your browser does not support web sql!");
+    }
+}
+
+
+function addCar() {
+    if (mydb) {
+        var make = document.getElementById("carmake").value;
+        var model = document.getElementById("carmodel").value;
+
+        if (make !== "" && model !== "") {
+            mydb.transaction(function(t) {
+                t.executeSql("INSERT INTO detail (make, model) VALUES (?, ?)", [make, model]);
+                outputCars();
+            });
+        } else {
+            alert("You must enter a make and model!");
+        }
+    } else {
+        alert("db not found, your browser does not support web sql!");
+    }
+}
+
+
+
+function deleteCar(id) {
+    if (mydb) {
+        mydb.transaction(function(t) {
+            t.executeSql("DELETE FROM detail WHERE id=?", [id], outputCars);
+        });
+    } else {
+        alert("db not found, your browser does not support web sql!");
+    }
+}
+
+outputCars();
+  </script>
+  </head>
+  <body>
+  <h1>WebSQL Example</h1>
+
+<div id="controls">
+    <p>Add a car to the database</p>
+    <label>Name: </label><input type="text" id="carmake" /><br />
+    <label>Email: </label><input type="text" id="carmodel" /><br />
+    <button type="button" id="addcar" onclick="addCar();">Add</button>
+</div>
+<div id="carlistholder">
+    <h3>Your Detail</h3>
+    <ul id="carlist">
+    </ul>
+</div>
+
 </body>
 </html>
